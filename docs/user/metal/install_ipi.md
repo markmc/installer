@@ -78,12 +78,30 @@ tested, and documented over time.
 ## Installation Process
 
 Once an environment has been prepared according to the documented
-pre-requisites, the install process is the same as other IPI based platforms.
+pre-requisites, the install process is much the same as other IPI
+based platforms except one extra configuration step is currently
+required.
 
-`openshift-install create cluster`
+```
+$ openshift-install create manifests
+$ cat > openshift/99_metal3-config.yaml <<EOF
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: metal3-config
+  namespace: openshift-machine-api
+data:
+  ...
+EOF
+$ openshift-install create cluster
+```
 
-However, it is recommended to prepare an `install-config.yaml` file in advance,
-containing all of the details of the bare metal hosts to be provisioned.
+Note, it is recommended to prepare an `install-config.yaml` file in advance,
+containing all of the details of the bare metal hosts to be
+provisioned.
+
+See the section below for details of the configuration required in the
+`metal3-config` object.
 
 ### Install Config
 
@@ -164,6 +182,24 @@ pullSecret: ...
 sshKey: ...
 ```
 
+### metal3-config
+
+The configuration items in the `metal3-config` object are used by the
+`machine-api-operator` to configure the `metal3` deployment which
+includes the `metal3-baremetal-operator` and related components. See
+below for a listing of these configuration items.
+
+- `cache_url`: e.g. `http://192.168.111.1/images`
+- `deploy_kernel_url`: e.g. `http://172.22.0.3:6180/images/ironic-python-agent.kernel`
+- `deploy_ramdisk_url`: e.g. `http://172.22.0.3:6180/images/ironic-python-agent.initramfs`
+- `dhcp_range`: e.g. `172.22.0.10,172.22.0.100`
+- `http_port`: e.g. `6180`
+- `ironic_endpoint`: e.g. `http://172.22.0.3:6385/v1/`
+- `ironic_inspector_endpoint`: e.g. `http://172.22.0.3:5050/v1/`
+- `provisioning_interface`: e.g. `ens3`
+- `provisioning_ip`: e.g. `172.22.0.3/24`
+- `rhcos_image_url`: e.g. "https://releases-art-rhcos.svc.ci.openshift.org/.../rhcos-...-openstack.qcow2"
+
 ## Work in Progress
 
 Integration of the `baremetal` platform is still a work-in-progress across
@@ -173,18 +209,6 @@ fully integrated, and their workarounds.
 Note that once this work moves into the `openshift/installer` repository, new
 issues will get created or existing issues will be moved to track these gaps
 instead of the leaving the existing issues against the KNI fork of the installer.
-
-### Deployment of the `baremetal-operator`
-
-The `baremetal-operator` provides the server side of the API used by the
-`baremetal` platform `Machine` actuator
-([cluster-api-provider-baremetal](https://github.com/metal3-io/cluster-api-provider-baremetal)).
-This is currently handled by the
-[08_deploy_bmo.sh](https://github.com/openshift-metal3/dev-scripts/blob/master/08_deploy_bmo.sh)
-script.
-
-This will be replaced by `machine-api-operator` integration and the following
-PR: https://github.com/openshift/machine-api-operator/pull/302
 
 ### `BareMetalHost` registration by the Installer
 

@@ -313,3 +313,15 @@ resource "aws_security_group_rule" "master_ingress_services_udp" {
   self      = true
 }
 
+# FIXME: it's probably a bug that this is needed?
+resource "aws_security_group_rule" "master_ingress_dns_udp_v6" {
+  type              = "ingress"
+  security_group_id = aws_security_group.master.id
+
+  protocol         = "udp"
+  ipv6_cidr_blocks = [data.aws_vpc.cluster_vpc.ipv6_cidr_block]
+  from_port        = 5353
+  to_port          = 5353
+
+  count = var.use_ipv6 == true ? 1 : 0
+}

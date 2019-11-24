@@ -71,7 +71,7 @@ resource "aws_security_group_rule" "master_ingress_icmp_v6" {
   type              = "ingress"
   security_group_id = aws_security_group.master.id
 
-  protocol         = "icmp"
+  protocol         = "icmpv6"
   ipv6_cidr_blocks = [data.aws_vpc.cluster_vpc.ipv6_cidr_block]
   from_port        = -1
   to_port          = -1
